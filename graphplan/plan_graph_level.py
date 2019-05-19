@@ -84,9 +84,6 @@ class PlanGraphLevel(object):
 
 
 
-
-
-
     def update_mutex_actions(self, previous_layer_mutex_proposition):
         """
         Updates the mutex set in self.action_layer,
@@ -99,6 +96,14 @@ class PlanGraphLevel(object):
         """
         current_layer_actions = self.action_layer.get_actions()
         "*** YOUR CODE HERE ***"
+        combs = []
+        for ac1 in current_layer_actions:
+            for ac2 in current_layer_actions:
+                combs.append((ac1,ac2))
+
+        map(self.actionLayer.add_mutex_actions,list(filter(lambda x,y:mutex_actions(x,y,previous_layer_mutex_proposition),
+        list(filter(lambda i,j: i!=j),combs))))
+
 
     def update_proposition_layer(self):
         """
@@ -116,6 +121,11 @@ class PlanGraphLevel(object):
         """
         current_layer_actions = self.action_layer.get_actions()
         "*** YOUR CODE HERE ***"
+        for action in current_layer_actions:
+            for prop in action.get_add():
+                if prop not in self.proposition_layer.get_propositions():
+                    self.proposition_layer.add_proposition(prop)
+                prop.add_producer(action)
 
     def update_mutex_proposition(self):
         """
