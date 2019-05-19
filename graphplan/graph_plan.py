@@ -229,6 +229,24 @@ def independent_pair(a1, a2):
     """
     "*** YOUR CODE HERE ***"
 
+    if a1 == a2:
+        return True
+    
+    def is_PreOrPosOf(action):
+        return lambda condition: action.is_pre_cond(condition) or action.is_pos_effect(condition)
+
+    #get the actions pre conditions
+    con1 = a1.get_delete()
+    con2 = a2.get_delete()
+
+    #and now check if one of action' pre or pos conditions contain at least
+    #one of the other action' pre- conditions
+
+    con1Ac2 = any(list(map(is_PreOrPosOf(a2),con1)))
+    con2Ac1 = any(list(map(is_PreOrPosOf(a1),con2)))
+
+    return (con1Ac2 == False) and (con2Ac1 == False)
+
 
 if __name__ == '__main__':
     import sys
