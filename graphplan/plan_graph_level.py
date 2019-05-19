@@ -44,6 +44,23 @@ class PlanGraphLevel(object):
     def set_action_layer(self, action_layer):  # sets the action layer
         self.action_layer = action_layer
 
+
+    def isPreconditionsInPrevLayer(previous_proposition_layer,action):
+        return previous_proposition_layer.all_preconds_in_layer(action)
+
+
+    def isPropsInMutex(action,previous_proposition_layer):
+        combs = []
+        for con1 in action.get_pre():
+            for con2 in action.get_pre():
+                combs.append((con1,con2))
+        
+        allCombs = list(filter(lambda x,y : x!=y),combs)
+        #now check if any of the pair props is in Mutex
+
+        isInMutex = list(map(lambda conditions: previous_proposition_layer.is_mutex(conditions[0],conditions[1]),allCombs))
+        return not any(isInMutex)
+
     def update_action_layer(self, previous_proposition_layer):
         """
         Updates the action layer given the previous proposition layer (see proposition_layer.py)
@@ -59,6 +76,16 @@ class PlanGraphLevel(object):
         """
         all_actions = PlanGraphLevel.actions
         "*** YOUR CODE HERE ***"
+
+        #applying add_action function for each action from filtered list which have its preconds in prev level
+        #filtering only actions which their preconds are not pairwise mutex
+        map(self.action_layer.add_action,list(filter(isPropsInMutex,
+         list(filter(isPreconditionsInPrevLayer,all_actions)))))
+
+
+
+
+
 
     def update_mutex_actions(self, previous_layer_mutex_proposition):
         """
@@ -173,3 +200,14 @@ def mutex_propositions(prop1, prop2, mutex_actions_list):
     prop1.get_producers() returns the set of all the possible actions in the layer that have prop1 on their add list
     """
     "*** YOUR CODE HERE ***"
+    def isPairMutex(a1,a2):
+        return (Pair(a1,a2) in mutex_actions_list)
+
+    pro1 = prop1.get_producers()
+    pro2 = prop2.get_producers()
+    for ac1 in pro1:
+        for ac2 in pro2:
+            if(not isPairMutex(ac1,ac2)):
+                return False
+    return True
+
