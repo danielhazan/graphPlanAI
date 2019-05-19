@@ -147,6 +147,22 @@ def have_competing_needs(a1, a2, mutex_props):
     """
     "*** YOUR CODE HERE ***"
 
+    def isMutex(p,q):
+        return Pair(p,q) in mutex_props
+    precon1 = a1.get_pre()
+    precon2 = a2.get_pre()
+
+    for condition1 in precon1:
+        for condition2 in precon2:
+            if isMutex(condition1,condition2):
+                return True
+    return False
+
+
+
+
+
+
 
 def mutex_propositions(prop1, prop2, mutex_actions_list):
     """
