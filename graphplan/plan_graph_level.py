@@ -51,15 +51,23 @@ class PlanGraphLevel(object):
 
     def isPropsInMutex(self,action,previous_proposition_layer):
         combs = []
-        for con1 in action.get_pre():
-            for con2 in action.get_pre():
+        pre = action.get_pre()
+        for con1 in pre:
+            for con2 in pre:
                 combs.append((con1,con2))
         
-        allCombs = list(filter(lambda x,y : x!=y),combs)
+        # allCombs = list()
+        # for preconds in combs:
+        #     con1 , con2 = preconds
+        #     if(con1 != con2):
+        #         allCombs.append(preconds)
+        
+        allCombs = list(filter(lambda x : (x[0]!=x[1]) ,combs) )
         #now check if any of the pair props is in Mutex
 
-        isInMutex = list(map(lambda conditions: previous_proposition_layer.is_mutex(conditions[0],conditions[1]),allCombs))
-        return not any(isInMutex)
+        isInMutex = list(map(lambda conditions: (previous_proposition_layer.is_mutex(conditions[0],conditions[1])),allCombs))
+        isNoMutex = not any(isInMutex)        
+        return isNoMutex
 
     def update_action_layer(self, previous_proposition_layer):
         """
@@ -76,11 +84,18 @@ class PlanGraphLevel(object):
         """
         all_actions = PlanGraphLevel.actions
         "*** YOUR CODE HERE ***"
+        def addAct(action):
+            return self.action_layer.add_action(action) 
 
         #applying add_action function for each action from filtered list which have its preconds in prev level
         #filtering only actions which their preconds are not pairwise mutex
-        map(self.action_layer.add_action,list(filter(lambda action :self.isPropsInMutex(action,previous_proposition_layer),
-         list(filter(lambda action : self.isPreconditionsInPrevLayer(previous_proposition_layer,action),all_actions)))))
+        return list(map(lambda action : addAct(action),list(filter(lambda action :(self.isPropsInMutex(action,previous_proposition_layer)),
+         list(filter(lambda action : (self.isPreconditionsInPrevLayer(previous_proposition_layer,action)),all_actions))))))
+
+        # for action in all_actions:
+        #     if (self.isPreconditionsInPrevLayer(previous_proposition_layer,action)
+        #     and self.isPropsInMutex(action,previous_proposition_layer)):
+        #         addAct(action)
 
 
 
@@ -101,8 +116,12 @@ class PlanGraphLevel(object):
             for ac2 in current_layer_actions:
                 combs.append((ac1,ac2))
 
-        map(self.actionLayer.add_mutex_actions,list(filter(lambda x,y:mutex_actions(x,y,self.previous_layer_mutex_proposition),
-        list(filter(lambda i,j: i!=j),combs))))
+        def addMutexActs(pairOfActions):
+            a1,a2 = pairOfActions
+            return self.action_layer.add_mutex_actions(a1,a2) 
+
+        return list(map(addMutexActs,list(filter(lambda x:mutex_actions(x[0],x[1],previous_layer_mutex_proposition),
+        list(filter(lambda i: (i[0]!=i[1]),combs))))))
 
 
     def update_proposition_layer(self):
@@ -149,10 +168,10 @@ class PlanGraphLevel(object):
             for prop2 in current_layer_propositions:
                 combs.append((prop1,prop2))
         
-        map(lambda prop1,prop2:self.proposition_layer.add_mutex_prop(prop1,prop2),  # applying this function to each pair of props which are in same mutex
+        return list(map(lambda prop:self.proposition_layer.add_mutex_prop(prop[0],prop[1]),  # applying this function to each pair of props which are in same mutex
         list(filter(self.notInMutexPropositions,
-        list(filter(lambda p1,p2:mutex_propositions(p1,p2,current_layer_mutex_actions),
-        list(filter(lambda p1, p2: p1!= p2,combs)))))))
+        list(filter(lambda pr:(mutex_propositions(pr[0],pr[1],current_layer_mutex_actions)),
+        list(filter(lambda pr: (pr[0]!= pr[1]),combs))))))))
 
 
     def expand(self, previous_layer):

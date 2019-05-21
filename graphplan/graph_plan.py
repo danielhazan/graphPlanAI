@@ -232,6 +232,7 @@ def independent_pair(a1, a2):
     if a1 == a2:
         return True
     
+    
     def is_PreOrPosOf(action):
         return lambda condition: action.is_pre_cond(condition) or action.is_pos_effect(condition)
 
