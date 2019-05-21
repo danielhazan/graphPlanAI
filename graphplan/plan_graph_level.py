@@ -61,7 +61,7 @@ class PlanGraphLevel(object):
         #     con1 , con2 = preconds
         #     if(con1 != con2):
         #         allCombs.append(preconds)
-        
+
         allCombs = list(filter(lambda x : (x[0]!=x[1]) ,combs) )
         #now check if any of the pair props is in Mutex
 
@@ -146,8 +146,8 @@ class PlanGraphLevel(object):
                     self.proposition_layer.add_proposition(prop)
                 prop.add_producer(action)
 
-    def notInMutexPropositions(self,p1,p2):
-        if Pair(p1,p2) in proposition_layer.mutexPropositions:
+    def notInMutexPropositions(self,props):
+        if Pair(props[0],props[1]) in proposition_layer.mutexPropositions:
             return False
         return True
 
@@ -167,11 +167,18 @@ class PlanGraphLevel(object):
         for prop1 in current_layer_propositions:
             for prop2 in current_layer_propositions:
                 combs.append((prop1,prop2))
+
+        def addMutexProp(props):
+            return self.proposition_layer.add_mutex_prop(props[0],props[1])
         
-        return list(map(lambda prop:self.proposition_layer.add_mutex_prop(prop[0],prop[1]),  # applying this function to each pair of props which are in same mutex
-        list(filter(self.notInMutexPropositions,
-        list(filter(lambda pr:(mutex_propositions(pr[0],pr[1],current_layer_mutex_actions)),
-        list(filter(lambda pr: (pr[0]!= pr[1]),combs))))))))
+          # applying this function to each pair of props which are in same mutex  
+          #  
+        l1 = list(filter(lambda pr:  (pr[0]!= pr[1]),combs)) 
+        
+        l2 = list(filter(lambda pr:mutex_propositions(pr[0],pr[1],current_layer_mutex_actions),l1))
+        l3 = list(filter(self.notInMutexPropositions,l2))
+
+        return list(map(lambda props: addMutexProp(props),l3))
 
 
     def expand(self, previous_layer):
