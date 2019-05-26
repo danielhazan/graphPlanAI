@@ -129,13 +129,72 @@ def max_level(state, planning_problem):
     """
     "*** YOUR CODE HERE ***"
 
+    prop_layer_init = PropositionLayer()          #create a new proposition layer
+    for prop in state:
+        prop_layer_init.add_proposition(prop)        #update the proposition layer with the propositions of the state
+    pg = PlanGraphLevel()                   #create a new plan graph level (level is the action layer and the propositions layer)
+    pg.set_proposition_layer(prop_layer_init)   #update the new plan graph level with the the proposition layer
+
+    plan_props = pg.get_proposition_layer().get_propositions()
+    my_graph = list()
+    my_graph.append(pg)
+
+    #search for goal state in new layer props ->
+    while not planning_problem.is_goal_state(plan_props):
+        if is_fixed(my_graph,len(my_graph) -1):
+            return float('inf')
+        #now create the next plan
+        pg , plan_props = compute_next_plan(pg)
+
+        my_graph.append(pg)
+
+    return len(my_graph) -1
+
+
+def compute_next_plan(currPlan):
+    next_plan = PlanGraphLevel()
+    next_plan.expand_without_mutex(currPlan)
+    return next_plan , next_plan.get_proposition_layer().get_propositions()
 
 def level_sum(state, planning_problem):
+
     """
     The heuristic value is the sum of sub-goals level they first appeared.
     If the goal is not reachable from the state your heuristic should return float('inf')
     """
     "*** YOUR CODE HERE ***"
+
+    prop_layer_init = PropositionLayer()          #create a new proposition layer
+    for prop in state:
+        prop_layer_init.add_proposition(prop)        #update the proposition layer with the propositions of the state
+    pg = PlanGraphLevel()                   #create a new plan graph level (level is the action layer and the propositions layer)
+    pg.set_proposition_layer(prop_layer_init)   #update the new plan graph level with the the proposition layer
+
+    plan_props = pg.get_proposition_layer().get_propositions()
+    my_graph = list()
+    my_graph.append(pg)
+
+    goals_level =dict()
+    currGoal = planning_problem.goal
+
+    for prop in currGoal:
+        goals_level[prop.get_name()] = "not found"
+
+    while "not found" in goals_level.values():
+        if is_fixed(my_graph,len(my_graph) -1):
+            return float('inf')
+
+        for prop in currGoal:
+            if prop in plan_props and goals_level[prop.get_name()] == None:
+                #the current level is the first appearance of this prop
+                goals_level[prop.get_name()] = len(my_graph) - 1
+
+        pg , plan_props = compute_next_plan(pg)
+        my_graph.append(pg)
+
+    return sum(goals_level.values())
+
+
 
 
 def is_fixed(graph, level):
