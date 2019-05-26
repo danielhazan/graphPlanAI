@@ -51,6 +51,11 @@ class PlanningProblem:
         """
         return not self.goal_state_not_in_prop_layer(state)
 
+    # def all_preconds_in_list(self,action,props):
+    #     for precond in action.get_pre():
+    #         if precond not in props:
+    #             return False
+    #     return True
 
     def get_successors(self, state):
         """
@@ -67,6 +72,19 @@ class PlanningProblem:
         """
         self.expanded += 1
         "*** YOUR CODE HERE ***"
+
+        successors = list()
+        cost = 1
+
+        for act in self.actions:
+            if (not act.is_noop()) and act.all_preconds_in_list(state):
+                #add->
+                successor = state + [prop for prop in act.get_add() if prop not in state]
+                #delete ->
+                successor = [prop for prop in successor if prop not in act.get_delete()]
+                successors.append((successor,act,cost))
+        return successors
+
         
 
     @staticmethod
